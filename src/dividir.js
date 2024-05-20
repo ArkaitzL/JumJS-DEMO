@@ -1,60 +1,19 @@
 import { util } from './util.js';
 
+import { Clase } from './clases.js';
+import { Funcion } from './clases.js';
+import { Bloque } from './clases.js';
+import { Codigo } from './clases.js';
+import { Variable } from './clases.js';
+
 //Informacion analizada
 let paquetes = []; // [""]
 let imports = []; // [""]
 let clases = []; // *1
 
-/* 
-    *1: Estructura clase
-    {
-        nombre: "",
-        variables: [], *5
-        funciones: [], *2
-    }
-*/
-
-/* 
-    *2: Estructura funcion
-    {
-        nombre: "",
-        privada: true/false,
-        parametros: [], *5 
-        codigo: [], *4
-        bloques: [] *3
-    }
-*/
-
-/* 
-    *3: Estructura bloque
-    {
-        tipo: bucle/condicion,
-        parametros: [], *5 
-        codigo: [],*4
-        bloques: [] *3
-    }
-*/
-
-/*
-    *4: Estructura codigo
-    {
-        variables: [], *5
-        servicios: [""],
-        llamadas: [""],
-
-    }
-*/
-
-/*
-    *5: Estructura variable
-    {
-        nombre: "",
-        tipo: "",
-    }
-*/
-
 export function dividirFun(){
     util();
+    
     return new Promise((resolve, reject) => {
         // Codigo
         let texto = document.getElementById("clase").value.replace(/\/\/.*\n/g, '\n');
@@ -76,8 +35,8 @@ function archivo(bloque){
     const { INFO, BLOQUES, LINEAS } = separarCodigo(bloque, false);
 
     //Continua la anidacion
-    BLOQUES.forEach(bloque => {
-        clase(bloque);
+    BLOQUES.forEach((bloque, index_clase) => {
+        clase(bloque, index_clase);
     });
 
     //Analiza las lineas
@@ -93,40 +52,83 @@ function archivo(bloque){
     // console.log(LINEAS);
 }
 
-function clase(bloque){
+function clase(bloque, index_clase){
     const { INFO, BLOQUES, LINEAS } = separarCodigo(bloque);
+    let clase = new Clase()
 
-    //Continua la anidacion
-    BLOQUES.forEach(bloque => {
-        funcion(bloque);
+    //Analiza la informacion -> nombre clase
+    let analizada = INFO.match(/class (\w+)/);
+    clase.nombre = analizada ? analizada[1] : null;
+
+    //Analiza las lineas -> variables/servicios
+    LINEAS.forEach(linea => {
+        //Sercivios
+        if(linea.includes("@Autowired")) {
+            linea = linea.replace(/;/g, "");
+            const PARTES = linea.split(" ");
+
+            let servicio = new Variable();
+            servicio.nombre = PARTES[PARTES.length - 1];
+            servicio.tipo = PARTES[PARTES.length - 2];
+            clase.nombres_servicio.push(servicio);
+        }
+        //Variables
+        else {
+            if(linea.includes("=")) linea = linea.split("=")[0].trim();
+            else linea = linea.replace(/;/g, "");
+            const PARTES = linea.split(" ");
+
+            let variable = new Variable();
+            variable.nombre = PARTES[PARTES.length - 1];
+            variable.tipo = PARTES[PARTES.length - 2];
+            clase.variables.push(variable);
+        }
     });
 
-    //Analiza la informacion
-    // *** ANALIZA EL NOMBRE ***
+    clases.push(clase);
 
-    //Analiza las lineas
-    // LINEAS.forEach(linea => {
-    // *** ANALIZA LAS VARIABLES ***
-    // });
+    //Continua la anidacion
+    BLOQUES.forEach((bloque, index_funcion) => {
+        funcion(bloque, index_clase, index_funcion);
+    });
 
     // console.log(INFO);
     // console.log(BLOQUES);
     // console.log(LINEAS);
 }
 
-function funcion(bloque){
+function funcion(bloque, index_clase, index_funcion){
     const { INFO, BLOQUES, LINEAS } = separarCodigo(bloque);
+    let funcion = new Funcion();
+
+    //Analiza la informacion -> nombre, privacidad, parametros
+    let params = INFO.match(/\((.*?)\)/);
+    params = params ? params[1] : null;
+    let info = INFO.replace(`(${params})`, "").trim().split(" ");
+
+    switch (info.length) { // *** HACIENDO ***
+        case 2:
+            funcion.tipo = info[0];
+            funcion.nombre = info[1];
+            break;
+        case 3:
+            funcion.tipo = info[1];
+            funcion.nombre = info[2];
+            funcion.privada = (info[0] === "private" || info[0] === "protected");
+            break;
+        default:
+            break;
+    }     
+
+    //Analiza las lineas
+    codigo(LINEAS);
+
+    clases[index_clase].funciones.push(funcion);
 
     //Continua la anidacion
     BLOQUES.forEach(bloque => {
         estructuraBloque(bloque);
     });
-
-    //Analiza la informacion
-    // *** ANALIZA EL NOMBRE, LA PRIVACIDAD, LOS PARAMETROS ***
-
-    //Analiza las lineas
-    codigo(LINEAS);
 
     // console.log(INFO);
     // console.log(BLOQUES);
@@ -136,18 +138,17 @@ function funcion(bloque){
 function estructuraBloque(bloque){
     const { INFO, BLOQUES, LINEAS } = separarCodigo(bloque);
 
-    //Continua la anidacion
-    BLOQUES.forEach(bloque => {
-        otros(bloque);
-    });
-
     //Analiza la informacion
     // *** ANALIZA EL TIPO, LOS PARAMETROS ***
 
     //Analiza las lineas
     codigo(LINEAS);
 
-
+    //Continua la anidacion
+    BLOQUES.forEach(bloque => {
+        otros(bloque);
+    });
+    
     // console.log(INFO);
     // console.log(BLOQUES);
     // console.log(LINEAS);
