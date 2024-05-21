@@ -11,8 +11,8 @@ async function crear() {
     try {
         let datos = await dividirFun();
         console.log(datos);
-        // let resultado = await crearFun(datos);
-        // console.log(resultado);
+        let data = await crearFun(datos);
+        console.log(data.resultado);
         
     } catch (error) {
         console.error(error);

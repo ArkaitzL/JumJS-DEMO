@@ -8,9 +8,9 @@ import { Variable } from './clases.js';
 import { Servicio } from './clases.js';
 
 //Informacion analizada
-let paquetes = []; // [""]
-let imports = []; // [""]
-let clases = []; // *1
+let paquetes = [];
+let imports = [];
+let clases = [];
 
 export function dividirFun(){
     util();
@@ -18,8 +18,8 @@ export function dividirFun(){
     return new Promise((resolve, reject) => {
         // Codigo
         let texto = document.getElementById("clase").value;
-        texto = texto.replace(/\/\/.*\n/g, '');
-        texto = texto.replace(/\/\/.*$/gm, '');
+        texto = texto.replace(/\/\/.*\n/g, ''); // Elimina los comentarios de una linea
+        texto = texto.replace(/\/\/.*$/gm, ''); // Elimina los comentarios de una linea
         archivo(texto); 
 
         // Devolucion
