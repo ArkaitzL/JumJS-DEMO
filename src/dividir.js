@@ -106,7 +106,6 @@ function funcion(bloque, index_clase, index_funcion){
 
 
     //Analiza la informacion -> nombre, privacidad, parametros
-    let params = INFO.substring(INFO.indexOf("(") + 1, INFO.lastIndexOf(")"));
     let info = INFO.substring(0, INFO.indexOf("(")).trim().splitSpace();
 
     switch (info.length) {
@@ -117,13 +116,29 @@ function funcion(bloque, index_clase, index_funcion){
         case 3:
             funcion.tipo = info[1];
             funcion.nombre = info[2];
-            funcion.privada = (info[0] === "private" || info[0] === "protected");
+            funcion.privada = (info[0] === "private" || info[0] === "internal");
             break;
         default:
             break;
     }     
 
-    // ******************************* FALTAN LOS PARAMETROS *******************************    // HACIENDO //
+    let params = INFO.substring(INFO.indexOf("(") + 1, INFO.lastIndexOf(")"))
+        .split(",")
+        .map(param => param.trim())
+        .filter(param => param !== '');
+    
+    params.forEach(parametro => {
+
+        const PARTES = parametro.splitSpace();    
+
+        let params_obj = new Variable();
+        params_obj.tipo = PARTES[PARTES.length - 2];
+        params_obj.nombre = PARTES[PARTES.length - 1];
+
+        funcion.parametros = params_obj;
+    });
+    
+
 
     clases[index_clase].funciones.push(funcion);
 
@@ -195,14 +210,14 @@ function codigo(lineas, index_clase, index_funcion){
 
                     let servicio = new Servicio();
                     servicio.declaracion = parte.substring(0, parte.indexOf("("));
-                    servicio.asignacion = parte.substring(PARTES[i - 1] === "=");
+                    servicio.asignacion = PARTES[i - 1] === "=";
                     servicio.params = parte
                         .substring(parte.indexOf("(") + 1, parte.lastIndexOf(")"))
                         .split(",")
                         .map(param => param.trim())
                         .filter(param => param !== '');
 
-                    clases[index_clase].funciones[index_funcion].servicios.push(parte);
+                    clases[index_clase].funciones[index_funcion].servicios.push(servicio);
                 }
                 else {
                     // *** GUARDAR LAS PARTES DE LAS FUNCIONES QUE HAGAN FALTA ***
