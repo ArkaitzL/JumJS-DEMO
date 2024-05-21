@@ -50,9 +50,6 @@ function archivo(bloque){
             imports.push(linea);
     });
 
-    // console.log(INFO);
-    // console.log(BLOQUES);
-    // console.log(LINEAS);
 }
 
 function clase(bloque, index_clase){
@@ -95,9 +92,6 @@ function clase(bloque, index_clase){
         funcion(bloque, index_clase, index_funcion);
     });
 
-    // console.log(INFO);
-    // console.log(BLOQUES);
-    // console.log(LINEAS);
 }
 
 function funcion(bloque, index_clase, index_funcion){
@@ -123,7 +117,7 @@ function funcion(bloque, index_clase, index_funcion){
     }     
 
     let params = INFO.substring(INFO.indexOf("(") + 1, INFO.lastIndexOf(")"))
-        .split(",")
+        .splitComma()
         .map(param => param.trim())
         .filter(param => param !== '');
     
@@ -135,7 +129,7 @@ function funcion(bloque, index_clase, index_funcion){
         params_obj.tipo = PARTES[PARTES.length - 2];
         params_obj.nombre = PARTES[PARTES.length - 1];
 
-        funcion.parametros = params_obj;
+        funcion.parametros.push(params_obj);
     });
     
 
@@ -150,9 +144,6 @@ function funcion(bloque, index_clase, index_funcion){
         estructuraBloque(bloque, index_clase, index_funcion);
     });
 
-    // console.log(INFO);
-    // console.log(BLOQUES);
-    // console.log(LINEAS);
 }
 
 function estructuraBloque(bloque, index_clase, index_funcion){

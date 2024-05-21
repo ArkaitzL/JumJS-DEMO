@@ -1,5 +1,29 @@
 export const PRIMITIVOS = ["byte", "short", "int", "long", "float", "double", "boolean", "char", "String", "Integer", "Double", "Float", "Long", "Short", "Byte", "Boolean", "Character"];
-
+export const VALORES = {
+    primitivos: {
+        "byte": "0",
+        "short": "0",
+        "int": "0",
+        "long": "0L",
+        "float": "0.0f",
+        "double": "0.0d",
+        "boolean": "false",
+        "char": "'a'",
+        "String": "\"Ejemplo\"",
+        "Integer": "Integer.valueOf(0)",
+        "Double": "Double.valueOf(0.0)",
+        "Float": "Float.valueOf(0.0f)",
+        "Long": "Long.valueOf(0L)",
+        "Short": "Short.valueOf((short)0)",
+        "Byte": "Byte.valueOf((byte)0)",
+        "Boolean": "Boolean.valueOf(false)",
+        "Character": "Character.valueOf('a')"
+    },
+    listas: {
+        'List': {tipo: 'List<>', valor: 'new ArrayList<>()', add: 'add'},
+        'HashMap': {tipo: 'HashMap<>', valor: 'new HashMap<>()', add: 'put'},
+    }
+}
 export function util() {
     String.prototype.findIndex = function(caracter) {
         let indices = [];
@@ -55,8 +79,15 @@ export function util() {
     }
 
     String.prototype.splitSpace = function () {
-        // return this.split(/ (?![^<]*>)/g);
         return this.split(/ (?![^(]*\)|[^<]*>)/g);
+    }
+
+    String.prototype.splitComma = function () {
+        return this.split(/,(?![^<]*>)/g);
+    }
+
+    String.prototype.toName = function () {
+        return this.charAt(0).toLowerCase() + this.slice(1);
     }
 }
 

@@ -12,7 +12,7 @@ async function crear() {
         let datos = await dividirFun();
         console.log(datos);
         let data = await crearFun(datos);
-        console.log(data.resultado);
+        document.getElementById("resultado").innerHTML = data.resultado;
         
     } catch (error) {
         console.error(error);
