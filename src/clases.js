@@ -13,7 +13,10 @@ export class Funcion {
         this.tipo = "";
         this.privada = false;
         this.parametros = [];
-        this.codigo = [];
+        this.variables = [];
+        this.servicios = [];
+        this.llamadas = [];
+        this.llamadas_local = [];
         this.bloques = [];
     }
 }
@@ -22,15 +25,7 @@ export class Bloque {
     constructor(){
         this.tipo = "";
         this.parametros = [];
-        this.bloques = [];
-    }
-}
-
-export class Codigo {
-    constructor(){
-        this.variables = [];
-        this.servicios = [];
-        this.llamadas = [];
+        this.bloques = []; // ***  ¿¿¿  Añadir bloques en la lista de la funcion  ???  ***
     }
 }
 
@@ -38,6 +33,14 @@ export class Variable {
     constructor(nombre, tipo){
         this.nombre = nombre;
         this.tipo = tipo;
+    }
+}
+
+export class Servicio {
+    constructor(declaracion, params, asignacion){
+        this.declaracion = declaracion;
+        this.params = params;
+        this.asignacion = asignacion;
     }
 }
 
@@ -77,7 +80,7 @@ export class Variable {
     *4: Estructura codigo
     {
         variables: [], *5
-        servicios: [""],
+        servicios: [] * 6,
         llamadas: [""],
 
     }
@@ -88,5 +91,14 @@ export class Variable {
     {
         nombre: "",
         tipo: "",
+    }
+*/
+
+/*
+    *6: Estructura servicio
+    {
+        declaracion: "",
+        params: []
+        aisgnacion: true/false
     }
 */

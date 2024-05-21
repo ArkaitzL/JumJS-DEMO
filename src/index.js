@@ -5,7 +5,6 @@ import { util } from './util.js';
 onload = () => {
     util();
     document.getElementById("crear").addEventListener("click", crear);
-    console.log("INFO");
 }
 
 async function crear() {

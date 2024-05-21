@@ -1,3 +1,5 @@
+export const PRIMITIVOS = ["byte", "short", "int", "long", "float", "double", "boolean", "char", "String", "Integer", "Double", "Float", "Long", "Short", "Byte", "Boolean", "Character"];
+
 export function util() {
     String.prototype.findIndex = function(caracter) {
         let indices = [];
@@ -47,4 +49,14 @@ export function util() {
             // .replace(/\n/g, '')
             // .replace(/\t/g, '');
     }
+
+    String.prototype.removeSemicolon = function () {
+        return this.replace(/;/g, "")
+    }
+
+    String.prototype.splitSpace = function () {
+        // return this.split(/ (?![^<]*>)/g);
+        return this.split(/ (?![^(]*\)|[^<]*>)/g);
+    }
 }
+

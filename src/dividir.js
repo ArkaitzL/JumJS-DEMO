@@ -1,10 +1,11 @@
 import { util } from './util.js';
+import { PRIMITIVOS } from './util.js';
 
 import { Clase } from './clases.js';
 import { Funcion } from './clases.js';
 import { Bloque } from './clases.js';
-import { Codigo } from './clases.js';
 import { Variable } from './clases.js';
+import { Servicio } from './clases.js';
 
 //Informacion analizada
 let paquetes = []; // [""]
@@ -16,7 +17,9 @@ export function dividirFun(){
     
     return new Promise((resolve, reject) => {
         // Codigo
-        let texto = document.getElementById("clase").value.replace(/\/\/.*\n/g, '\n');
+        let texto = document.getElementById("clase").value;
+        texto = texto.replace(/\/\/.*\n/g, '');
+        texto = texto.replace(/\/\/.*$/gm, '');
         archivo(texto); 
 
         // Devolucion
@@ -64,8 +67,8 @@ function clase(bloque, index_clase){
     LINEAS.forEach(linea => {
         //Sercivios
         if(linea.includes("@Autowired")) {
-            linea = linea.replace(/;/g, "");
-            const PARTES = linea.split(" ");
+            linea = linea.removeSemicolon();
+            const PARTES = linea.splitSpace();
 
             let servicio = new Variable();
             servicio.nombre = PARTES[PARTES.length - 1];
@@ -76,7 +79,7 @@ function clase(bloque, index_clase){
         else {
             if(linea.includes("=")) linea = linea.split("=")[0].trim();
             else linea = linea.replace(/;/g, "");
-            const PARTES = linea.split(" ");
+            const PARTES = linea.splitSpace();
 
             let variable = new Variable();
             variable.nombre = PARTES[PARTES.length - 1];
@@ -101,12 +104,12 @@ function funcion(bloque, index_clase, index_funcion){
     const { INFO, BLOQUES, LINEAS } = separarCodigo(bloque);
     let funcion = new Funcion();
 
-    //Analiza la informacion -> nombre, privacidad, parametros
-    let params = INFO.match(/\((.*?)\)/);
-    params = params ? params[1] : null;
-    let info = INFO.replace(`(${params})`, "").trim().split(" ");
 
-    switch (info.length) { // *** HACIENDO ***
+    //Analiza la informacion -> nombre, privacidad, parametros
+    let params = INFO.substring(INFO.indexOf("(") + 1, INFO.lastIndexOf(")"));
+    let info = INFO.substring(0, INFO.indexOf("(")).trim().splitSpace();
+
+    switch (info.length) {
         case 2:
             funcion.tipo = info[0];
             funcion.nombre = info[1];
@@ -120,14 +123,16 @@ function funcion(bloque, index_clase, index_funcion){
             break;
     }     
 
-    //Analiza las lineas
-    codigo(LINEAS);
+    // ******************************* FALTAN LOS PARAMETROS *******************************    // HACIENDO //
 
     clases[index_clase].funciones.push(funcion);
 
+    //Analiza las lineas
+    codigo(LINEAS, index_clase, index_funcion);
+
     //Continua la anidacion
     BLOQUES.forEach(bloque => {
-        estructuraBloque(bloque);
+        estructuraBloque(bloque, index_clase, index_funcion);
     });
 
     // console.log(INFO);
@@ -135,28 +140,92 @@ function funcion(bloque, index_clase, index_funcion){
     // console.log(LINEAS);
 }
 
-function estructuraBloque(bloque){
+function estructuraBloque(bloque, index_clase, index_funcion){
     const { INFO, BLOQUES, LINEAS } = separarCodigo(bloque);
 
     //Analiza la informacion
     // *** ANALIZA EL TIPO, LOS PARAMETROS ***
 
     //Analiza las lineas
-    codigo(LINEAS);
+    codigo(LINEAS, index_clase, index_funcion);
 
     //Continua la anidacion
     BLOQUES.forEach(bloque => {
         otros(bloque);
     });
-    
+
     // console.log(INFO);
     // console.log(BLOQUES);
     // console.log(LINEAS);
 }
 
-function codigo(lineas){
-    //Analiza las lineas
-    // *** ANALIZA VARIABLE, SERVICIOS, LLAMADAS ***
+function codigo(lineas, index_clase, index_funcion){
+
+    //Analiza las lineas -> variables, servicios, llamadas
+    lineas.forEach(linea => {
+
+        //variables
+        const PARTES = linea.removeSemicolon().splitSpace();
+
+        if(PARTES.length == 2) {
+            if(esVariable(PARTES[0], PARTES[1])) {
+                let variable = new Variable();
+                variable.tipo = PARTES[0];
+                variable.nombre = PARTES[1];
+               
+                clases[index_clase].funciones[index_funcion].variables.push(variable);
+            }
+        }
+        if(PARTES.length > 2) {
+            if(PARTES[2] === "=" && esVariable(PARTES[0], PARTES[1])) {
+                let variable = new Variable();
+                variable.tipo = PARTES[0];
+                variable.nombre = PARTES[1];
+            
+                clases[index_clase].funciones[index_funcion].variables.push(variable);
+            }
+        }
+
+        //funciones de
+        PARTES.forEach((parte, i) => {
+            if (parte.match(/^\w+\.\w+\(/)) { // es funcion de un objeto
+                if (clases[index_clase].nombres_servicio.some(
+                    servicio => parte.split(".")[0] === servicio.nombre)
+                ){ // es sevicio
+
+                    let servicio = new Servicio();
+                    servicio.declaracion = parte.substring(0, parte.indexOf("("));
+                    servicio.asignacion = parte.substring(PARTES[i - 1] === "=");
+                    servicio.params = parte
+                        .substring(parte.indexOf("(") + 1, parte.lastIndexOf(")"))
+                        .split(",")
+                        .map(param => param.trim())
+                        .filter(param => param !== '');
+
+                    clases[index_clase].funciones[index_funcion].servicios.push(parte);
+                }
+                else {
+                    // *** GUARDAR LAS PARTES DE LAS FUNCIONES QUE HAGAN FALTA ***
+                }
+            }
+            else if(/^\w+\((\s*\w*\s*,*\s*)*\)$/) { // es una funcion local
+                    // *** GUARDAR LAS PARTES DE LAS FUNCIONES QUE HAGAN FALTA ***
+            }
+        });
+
+
+    });
+}
+
+// Funciones de codigo
+
+function esVariable(tipo, nombre) {
+
+    let tipo_valido = tipo.charCodeAt(0) >= 65 && tipo.charCodeAt(0) <= 90; // Mayusculas
+    let nombre_valido = nombre.charCodeAt(0) >= 97 && nombre.charCodeAt(0) <= 122; // Minusculas
+    let tipo_primitivo = PRIMITIVOS.includes(tipo);
+
+    return (tipo_valido || tipo_primitivo) && nombre_valido;
 }
 
 
