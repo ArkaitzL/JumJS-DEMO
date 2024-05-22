@@ -35,7 +35,7 @@ function claseTest(clase){
     });
 
     // Texto de la clase
-    return `
+    let str = `
         ${paquetes.map(paquete => paquete).join("\n") /*Paquetes*/}
 
         import **pendiente-basico**;
@@ -46,20 +46,31 @@ function claseTest(clase){
             @InjectMocks
             ${clase.nombre} ${clase.nombre.toName()};
 
-            ${clase.nombres_servicio.map((sercicio, i) => `${i != 0 ? '\t\t\t' :''}@Mock\n\t\t\t${sercicio.tipo} ${sercicio.nombre};`).join("\n")}
+            ${clase.nombres_servicio.map((sercicio, i) => `${i != 0 ? `${tab(3)}` :''}@Mock\n${tab(3)}${sercicio.tipo} ${sercicio.nombre};`).join("\n")}
 
             @**beforeEach
             funcion pendiente{
-                
+            
             }**
 
-            ${TEST.join("\n\t\t\t")}
+        ${TEST.join(`\n`)}
 
-        }
-    `;
+}   `;
+    // Eliminar las tabulaciones iniciales de cada línea
+    return str
+        .split('\n')
+        .map(line =>
+             line.startsWith('        ') ? line.slice(8) 
+                : line.startsWith('    ') ? line.slice(4) 
+                : line
+        )
+        .join('\n');
 }
 
 function test(clase, funcion){
+
+    // Crear las variables
+    let parametros = funcion.parametros.map(parametro => declararVariable(parametro.tipo, parametro.nombre));
 
     // Crear las llamadas
     let llamada = "";
@@ -74,15 +85,20 @@ function test(clase, funcion){
         llamada = "assertNotNull(";
     }
 
-    // Crear las variables
-    let parametros = funcion.parametros.map(parametro => declararVariable(parametro.tipo, parametro.nombre));
+    if(!funcion.privada) {
+        llamada += `${clase.nombre}.${funcion.nombre}(${parametros.map(parametro => parametro.nombre).join(", ")}));`
+    }
+    else{
+        llamada += `ReflectionTestUtils.invokeMethod(${clase.nombre}, "${funcion.nombre}", ${parametros.map(parametro => "\"" + parametro.nombre + "\"").join(", ")}));`
+    }
+    console.log(llamada);
 
     // Texto de la funcion
     return `
             void test01_${funcion.nombre}(){
 
-                ${parametros.map(parametro => parametro.declaracion).join("\n\t\t\t\t")}
-                ${llamada}${clase.nombre}.${funcion.nombre}(${parametros.map(parametro => parametro.nombre).join(", ")}));
+                ${parametros.map(parametro => parametro.declaracion).join(`\n${tab(1)}`)}
+                ${llamada}
             }
     `;
 }
@@ -158,4 +174,10 @@ function declararVariable(tipo, nombre){
     variable.nombre = nombre;
 
     return variable; //Retorna la variable
+}
+
+// Otras funciones
+
+function tab(cant){
+    return '    '.repeat(cant);
 }

@@ -22,6 +22,18 @@ export const VALORES = {
     listas: {
         'List': {tipo: 'List<>', valor: 'new ArrayList<>()', add: 'add'},
         'HashMap': {tipo: 'HashMap<>', valor: 'new HashMap<>()', add: 'put'},
+        'Set': {tipo: 'Set<>', valor: 'new HashSet<>()', add: 'add'},
+        'Map': {tipo: 'Map<>', valor: 'new HashMap<>()', add: 'put'},
+        'LinkedList': {tipo: 'LinkedList<>', valor: 'new LinkedList<>()', add: 'add'},
+        'TreeMap': {tipo: 'TreeMap<>', valor: 'new TreeMap<>()', add: 'put'},
+        'TreeSet': {tipo: 'TreeSet<>', valor: 'new TreeSet<>()', add: 'add'},
+        'LinkedHashMap': {tipo: 'LinkedHashMap<>', valor: 'new LinkedHashMap<>()', add: 'put'},
+        'LinkedHashSet': {tipo: 'LinkedHashSet<>', valor: 'new LinkedHashSet<>()', add: 'add'},
+        'Vector': {tipo: 'Vector<>', valor: 'new Vector<>()', add: 'add'},
+        'Stack': {tipo: 'Stack<>', valor: 'new Stack<>()', add: 'push'},
+        'Queue': {tipo: 'Queue<>', valor: 'new LinkedList<>()', add: 'add'},
+        'Deque': {tipo: 'Deque<>', valor: 'new ArrayDeque<>()', add: 'add'},
+        'PriorityQueue': {tipo: 'PriorityQueue<>', valor: 'new PriorityQueue<>()', add: 'add'},
     }
 }
 export function util() {
