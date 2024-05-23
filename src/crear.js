@@ -34,13 +34,44 @@ function claseTest(clase){
         TEST.push(test(clase, funcion));
     });
 
+    //Imports de las objetos
+    let objetos = clase.variables;
+    objetos = objetos.concat(clase.nombres_servicio);
+    clase.funciones.forEach(funcion => {
+        objetos = objetos.concat(funcion.parametros);
+    });
+    objetos = objetos.map(objeto => objeto.tipo);
+
+    let imports_objetos = [];
+    objetos.forEach(objeto => {
+        imports.forEach(imp => {  
+            const PARTES = imp
+                .split(".")
+                .map(parte => parte.trim());
+
+            if(PARTES[PARTES.length - 1].removeSemicolon() === objeto.trim()){
+                if(!imports_objetos.includes(imp)) imports_objetos.push(imp);
+            }
+        });
+    });
+
     // Texto de la clase
     let str = `
-        ${paquetes.map(paquete => paquete).join("\n") /*Paquetes*/}
+        ${paquetes.map(paquete => paquete).join("\n")}
 
-        import **pendiente-basico**;
+        import static org.junit.jupiter.api.Assertions.*;
 
-        @**pendiente**
+        import org.junit.jupiter.api.Test;
+        import org.springframework.test.util.ReflectionTestUtils;
+        import org.mockito.Mockito;
+        import org.mockito.InjectMocks;
+        import org.mockito.Mock;
+        import org.mockito.junit.jupiter.MockitoExtension;
+        import org.junit.jupiter.api.extension.ExtendWith;
+
+        ${imports_objetos.join("\n")}
+
+        @ExtendWith(MockitoExtension.class)
         public class ${clase.nombre} {
 
             @InjectMocks
@@ -48,12 +79,12 @@ function claseTest(clase){
 
             ${clase.nombres_servicio.map((sercicio, i) => `${i != 0 ? `${tab(3)}` :''}@Mock\n${tab(3)}${sercicio.tipo} ${sercicio.nombre};`).join("\n")}
 
-            @**beforeEach
-            funcion pendiente{
-            
-            }**
+            @BeforeEach
+            public void setUp() {
+                MockitoAnnotations.initMocks(this);
+            }
 
-        ${TEST.join(`\n`)}
+            ${TEST.join(`\n`)}
 
 }   `;
     // Eliminar las tabulaciones iniciales de cada línea
@@ -91,7 +122,6 @@ function test(clase, funcion){
     else{
         llamada += `ReflectionTestUtils.invokeMethod(${clase.nombre}, "${funcion.nombre}", ${parametros.map(parametro => "\"" + parametro.nombre + "\"").join(", ")}));`
     }
-    console.log(llamada);
 
     // Texto de la funcion
     return `
